@@ -11,6 +11,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
+import android.widget.BaseAdapter;
 import android.widget.Spinner;
 
 import java.io.InputStream;
@@ -66,12 +67,12 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
 
 
         //create a runnable object
-        exchangeRateUpdateRunnable = new ExchangeRateUpdateRunnable(MainActivity.this,(Spinner) findViewById(R.id.sp_fromval),(Spinner) findViewById(R.id.sp_toval));
+      //  exchangeRateUpdateRunnable = new ExchangeRateUpdateRunnable(MainActivity.this,(Spinner) findViewById(R.id.sp_fromval),(Spinner) findViewById(R.id.sp_toval));
 
         //create a new thread and pass runnable - passing this runnable process to a new thread
-        Thread t = new Thread(exchangeRateUpdateRunnable);
+        //Thread t = new Thread(exchangeRateUpdateRunnable);
 
-        t.start(); //let the thread run in the background
+        //t.start(); //let the thread run in the background
 
        /* //create a runnable object
         exchangeRateUpdateRunnable = new ExchangeRateUpdateRunnable(MainActivity.this,(Spinner) findViewById(R.id.sp_fromval),(Spinner) findViewById(R.id.sp_toval));
@@ -90,23 +91,29 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         setSupportActionBar(toolbar);
 
         Spinner spinnerFrom = findViewById(R.id.sp_fromval);
-        exchangeRateAdapter = new ExchangeRateAdapter(this,mExchangeRates);
+        exchangeRateAdapter = new ExchangeRateAdapter(exchangeRateDatabase);
         spinnerFrom.setAdapter(exchangeRateAdapter);
 
 
         Spinner spinnerTo = findViewById(R.id.sp_toval);
-        exchangeRateAdapter = new ExchangeRateAdapter(this,mExchangeRates);
+        exchangeRateAdapter = new ExchangeRateAdapter(exchangeRateDatabase);
         spinnerTo.setAdapter(exchangeRateAdapter);
+
 
         //SpinnerFrom Selected listener
         spinnerFrom.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                ExchangeRate fromCurrency = (ExchangeRate) parent.getItemAtPosition(position);
-                clickedFromCurrency = fromCurrency.getCurrencyName();
+                clickedFromCurrency = parent.getItemAtPosition(position).toString();
                 cCurrFrom = exchangeRateDatabase.getExchangeRate(clickedFromCurrency);
                 Toast.makeText(MainActivity.this,clickedFromCurrency + " selected. " + cCurrFrom + " exchange rate.", Toast.LENGTH_SHORT).show();
+             //   ExchangeRate fromCurrency =
+             /*   ExchangeRate fromCurrency = (ExchangeRate) parent.getItemAtPosition(position);
+                clickedFromCurrency = fromCurrency.getCurrencyName();
+
+                */
             }
+
 
             @Override
             public void onNothingSelected(AdapterView<?> parent) {
@@ -117,10 +124,15 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         spinnerTo.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                ExchangeRate toCurrency = (ExchangeRate) parent.getItemAtPosition(position);
+                clickedToCurrency = parent.getItemAtPosition(position).toString();
+                cCurrTo = exchangeRateDatabase.getExchangeRate(clickedToCurrency);
+                Toast.makeText(MainActivity.this,clickedToCurrency + " selected. " + cCurrTo + " exchange rate.", Toast.LENGTH_SHORT).show();
+             /*   ExchangeRate toCurrency = (ExchangeRate) parent.getItemAtPosition(position);
+
                 clickedToCurrency = toCurrency.getCurrencyName();
                 cCurrTo = exchangeRateDatabase.getExchangeRate(clickedToCurrency);
                 Toast.makeText(MainActivity.this,clickedToCurrency + " selected. " + cCurrTo + " exchange rate.", Toast.LENGTH_SHORT).show();
+    */
             }
 
             @Override
@@ -138,7 +150,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         String keySet;
         for(int i = 0; i < erd.getCurrencies().length; i++ ){
             keySet = exchangeRateDatabase.getCurrencies()[i];
-            mExchangeRates.add(new ExchangeRate(keySet,erd.getExchangeRate(keySet), erd.getFlagImage(keySet), erd.getCapital(keySet)));
+            mExchangeRates.add(new ExchangeRate(keySet,erd.getExchangeRate(keySet), erd.getCapital(keySet)));
         }
     }
 
@@ -148,7 +160,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         String keySet;
         for(int i = 0; i < currencies.length; i++ ){
             keySet = erd.getCurrencies()[i];
-            mExchangeRates.add(new ExchangeRate(keySet,erd.getExchangeRate(keySet), erd.getFlagImage(keySet), erd.getCapital(keySet)));
+            mExchangeRates.add(new ExchangeRate(keySet,erd.getExchangeRate(keySet), erd.getCapital(keySet)));
         }
     }
     public void calculate(View view){
@@ -204,8 +216,12 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                 return true;
             case R.id.toolbar_menu_item_refresh:
                 //new Thread((Runnable) new ExchangeRateUpdateRunnable(this,(Spinner) findViewById(R.id.sp_fromval),(Spinner) findViewById(R.id.sp_toval))).start();
-                exchangeRateUpdateRunnable.updateCurrencies();
+
+                new Thread((Runnable) new ExchangeRateUpdateRunnable(this)).start();
                 return true;
+
+                /*exchangeRateUpdateRunnable.updateCurrencies();
+                return true; */
                 //exchangeRateUpdateRunnable.updateCurrencies();
                 // 1. update objects (sorted) from web api
                    // updateCurrencies();
@@ -296,6 +312,9 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     }
 */
 
+    public ExchangeRateDatabase getDatabase(){
+        return exchangeRateDatabase;
+    }
 
 }
 

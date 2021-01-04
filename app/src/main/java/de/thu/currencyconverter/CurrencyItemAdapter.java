@@ -13,7 +13,7 @@ import java.util.List;
 public class CurrencyItemAdapter extends BaseAdapter {
 
     public List<ExchangeRate> data;
-    final ExchangeRateDatabase erd = new ExchangeRateDatabase();
+    final ExchangeRateDatabase exchangeRateDatabase = new ExchangeRateDatabase();
     //final CurrencyItemAdapter adapter = new CurrencyItemAdapter(erd);
 
     //Constructor
@@ -46,15 +46,18 @@ public class CurrencyItemAdapter extends BaseAdapter {
             convertView = inflater.inflate(R.layout.currency_list_item, null, false);
         }
 
+        String currentItem = exchangeRateDatabase.getCurrencies()[position];
 
         ImageView image_view_flag = convertView.findViewById(R.id.image_view_flag);
+        int imageId = context.getResources().getIdentifier("flag_"+currentItem.toLowerCase(),"drawable",context.getPackageName());
+
         TextView textView = (TextView)convertView.findViewById(R.id.txt_currency_item);
 
-        ExchangeRate currentItem = (ExchangeRate) getItem(position);
+
 
         if(currentItem != null){
-            image_view_flag.setImageResource(currentItem.getFlagImage());
-            textView.setText(currentItem.getCurrencyName());
+            image_view_flag.setImageResource(imageId);
+            textView.setText(currentItem);
         }
 
 

@@ -18,6 +18,7 @@ public class CurrencyListActivity extends AppCompatActivity {
 
     private ArrayList<ExchangeRate> mCurrencyItem;
     private CurrencyItemAdapter currencyItemAdapter;
+    ExchangeRateDatabase erd = new ExchangeRateDatabase();
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -33,7 +34,7 @@ public class CurrencyListActivity extends AppCompatActivity {
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                ExchangeRateDatabase erd = new ExchangeRateDatabase();
+
                 ExchangeRate exRate = (ExchangeRate) parent.getItemAtPosition(position);
                 String capitalName = exRate.getCapital();
 
@@ -53,11 +54,10 @@ public class CurrencyListActivity extends AppCompatActivity {
 
     public void initList(){
         mCurrencyItem = new ArrayList<>();
-        ExchangeRateDatabase erd = new ExchangeRateDatabase();
         String keySet;
         for(int i = 0; i < erd.getCurrencies().length; i++ ){
             keySet = erd.getCurrencies()[i];
-            mCurrencyItem.add(new ExchangeRate(keySet, erd.getExchangeRate(keySet), erd.getFlagImage(keySet),erd.getCapital(keySet)));
+            mCurrencyItem.add(new ExchangeRate(keySet, erd.getExchangeRate(keySet),erd.getCapital(keySet)));
         }
     }
 }
