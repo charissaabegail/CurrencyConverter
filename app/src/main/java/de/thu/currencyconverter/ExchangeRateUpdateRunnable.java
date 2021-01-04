@@ -1,10 +1,7 @@
 package de.thu.currencyconverter;
 
-import android.app.Activity;
 import android.util.Log;
-import android.view.View;
 import android.widget.Spinner;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import org.xmlpull.v1.XmlPullParser;
@@ -16,8 +13,6 @@ import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
-import java.util.ArrayList;
-import java.util.Collections;
 
 public class ExchangeRateUpdateRunnable implements Runnable {
     private boolean updating = false;
@@ -28,8 +23,13 @@ public class ExchangeRateUpdateRunnable implements Runnable {
     private Spinner spinnerTo;
     ExchangeRateDatabase erd = new ExchangeRateDatabase();
 
+    private Notifier notifier;
+    private int noOfItemsUpdated;
+
     public ExchangeRateUpdateRunnable(MainActivity activity){
         this.mainActivity = activity;
+
+        notifier = new Notifier(activity);
         //this.spinnerFrom = spinnerFrom;
         //this.spinnerTo = spinnerTo;
     }
@@ -56,7 +56,9 @@ public class ExchangeRateUpdateRunnable implements Runnable {
 
             Log.i("You can do it.", Double.toString(erd.getExchangeRate("PHP")));
             // mExchangeRatesNew.add(new ExchangeRate("EUR",erd.getExchangeRate("EUR"), erd.getFlagImage("EUR"), erd.getCapital("EUR")));
+            noOfItemsUpdated = 0;
             while(eventType != XmlPullParser.END_DOCUMENT){
+
                 // Toast.makeText(this, "Updating...", Toast.LENGTH_SHORT).show();
                 if(eventType == XmlPullParser.START_TAG) {
 
@@ -66,6 +68,7 @@ public class ExchangeRateUpdateRunnable implements Runnable {
                             String rateForOneEuro = parser.getAttributeValue(null,"rate");
 
                             mainActivity.getDatabase().setExchangeRate(currencyName, Double.parseDouble(rateForOneEuro));
+                            noOfItemsUpdated++;
                         }
                     }
                 }
@@ -82,13 +85,15 @@ public class ExchangeRateUpdateRunnable implements Runnable {
             Log.e("XmlPullParserException", "XmlPullParserException");
         }
 
+        notifier.removeNotification();
         //a toast can only be started from the UI thread. This means that new Runnable needs to be created
         //new Runnable is passed to the UI thread for execution
         mainActivity.runOnUiThread(new Runnable() {
             @Override
             public void run() {
+                notifier.showOrUpdateNotification(noOfItemsUpdated);
                 Toast.makeText(mainActivity.getApplicationContext(),
-                        "The rates have been successfully updated", Toast.LENGTH_LONG).show();
+                        "Rates successfully updated!", Toast.LENGTH_LONG).show();
                 mainActivity.getAdapter().notifyDataSetChanged();
                 // notifier.showOrUpdateNotification();
             }
