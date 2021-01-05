@@ -26,7 +26,7 @@ android:padding="10dp" >
     />
 <TextView
     android:textSize="13dp"
-    android:textColor="#000"
+    android:textColor="#808080"
     android:text="Testing is awecome"
     android:id="@+id/text"
     android:layout_width="wrap_content"

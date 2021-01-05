@@ -13,6 +13,14 @@ public class Notifier {
     private NotificationManager notificationManager;
     private NotificationCompat.Builder notificationBuilder;
     private Context context;
+
+    private final String C_CHANNEL_ID = "converter_channel";
+    private final String C_CHANNEL_NAME = "show update state";
+
+    private String cNotifTitle = "CurrencyConverter is now up-to-date!";
+    private String cNotifDesc = "Updating...";
+    private int cNotifId = 123;
+
     public Notifier(Context context) {
         this.context = context;
         // 1. Create Manager
@@ -20,10 +28,10 @@ public class Notifier {
 
         // 2. Create Notification Channel
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-            NotificationChannel notificationChannel = notificationManager.getNotificationChannel("converter_channel");
+            NotificationChannel notificationChannel = notificationManager.getNotificationChannel(C_CHANNEL_ID);
             if (notificationChannel == null) {
-                notificationChannel = new NotificationChannel("converter_channel",
-                        "show update state",
+                notificationChannel = new NotificationChannel(C_CHANNEL_ID,
+                        C_CHANNEL_NAME,
                         NotificationManager.IMPORTANCE_DEFAULT);
                 notificationManager.createNotificationChannel(notificationChannel);
             }
@@ -34,10 +42,10 @@ public class Notifier {
             // Custom layout for notification
             RemoteViews contentView = new RemoteViews(this.context.getPackageName(), R.layout.notification_update_rates);
             contentView.setImageViewResource(R.id.image, R.drawable.icon);
-            contentView.setTextViewText(R.id.title, "CurrencyConverter is now up-to-date! ");
-            contentView.setTextViewText(R.id.text, "Updating...");
+            contentView.setTextViewText(R.id.title, cNotifTitle);
+            contentView.setTextViewText(R.id.text, cNotifDesc);
 
-        notificationBuilder = new NotificationCompat.Builder(context,"converter_channel")
+        notificationBuilder = new NotificationCompat.Builder(context,C_CHANNEL_ID)
                 .setSmallIcon(R.drawable.ic_update)
                // .setStyle(new NotificationCompat.DecoratedCustomViewStyle())
                 .setCustomContentView(contentView)
@@ -59,10 +67,10 @@ public class Notifier {
 
     public void showOrUpdateNotification(int value) {
         notificationBuilder.setContentText(value + " items updated");
-        notificationManager.notify(123, notificationBuilder.build());
+        notificationManager.notify(cNotifId, notificationBuilder.build());
     }
 
     public void removeNotification() {
-        notificationManager.cancel(123);
+        notificationManager.cancel(cNotifId);
     }
 }
