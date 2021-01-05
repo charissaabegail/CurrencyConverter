@@ -124,7 +124,11 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
 
     }
 
-
+    @Override
+    public void onStart() {
+        super.onStart();
+        scheduleJobRateUpdater();
+    }
     @Override
     public void onResume(){
         super.onResume();
