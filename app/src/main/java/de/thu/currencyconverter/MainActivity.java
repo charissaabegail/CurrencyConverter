@@ -10,6 +10,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.os.PersistableBundle;
 import android.os.StrictMode;
 import android.util.Log;
 import android.view.Menu;
@@ -63,14 +64,17 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
 
     private static final String TAG = "MainActivity";
 
+    private static MainActivity instance;
 
-
+    public static MainActivity getInstance() {
+        return instance;
+    }
     // Overriden methods
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
+        instance = this;
         //Quick fix for Network Error
         /*StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
         StrictMode.setThreadPolicy(policy); */
@@ -236,8 +240,8 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                 startActivity(new Intent(MainActivity.this, CurrencyListActivity.class));
                 return true;
             case R.id.toolbar_menu_item_refresh:
-                new Thread((Runnable) new ExchangeRateUpdateRunnable(this)).start();
-                //scheduleJobRateUpdater();
+               // new Thread((Runnable) new ExchangeRateUpdateRunnable(this)).start();
+                scheduleJobRateUpdater();
                 //this.scheduleJobRateUpdater();
                 return true;
 
@@ -282,18 +286,19 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         return exchangeRateDatabase;
     }
 
-    public MainActivity getActivity(){
-        return MainActivity.this;
-    }
+
 
     public void scheduleJobRateUpdater() {
         ComponentName componentName = new ComponentName(this, UpdateRatesSchedulerService.class);
+
         JobInfo info = new JobInfo.Builder(123, componentName)
                 // .setRequiresCharging(true)
                 .setRequiredNetworkType(JobInfo.NETWORK_TYPE_UNMETERED)
                 .setPersisted(true)
                 .setPeriodic(15 * 60 * 1000)
                 .build();
+
+
         JobScheduler scheduler = (JobScheduler) getSystemService(JOB_SCHEDULER_SERVICE);
         int resultCode = scheduler.schedule(info);
         if (resultCode == JobScheduler.RESULT_SUCCESS) {

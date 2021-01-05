@@ -17,8 +17,8 @@ public class Notifier {
     private final String C_CHANNEL_ID = "converter_channel";
     private final String C_CHANNEL_NAME = "show update state";
 
-    private String cNotifTitle = "CurrencyConverter is now up-to-date!";
-    private String cNotifDesc = "Updating...";
+    private String cNotifTitle = "CurrencyConverter Updating...";
+    private String cNotifDesc = "CurrencyConverter is now up-to-date!";
     private int cNotifId = 123;
 
     public Notifier(Context context) {
