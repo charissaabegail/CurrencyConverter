@@ -3,6 +3,9 @@ package de.thu.currencyconverter;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.app.job.JobInfo;
+import android.app.job.JobScheduler;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -57,6 +60,8 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     ExchangeRateDatabase exchangeRateDatabase = new ExchangeRateDatabase();
     ShareActionProvider shareActionProvider = null;
     ExchangeRateUpdateRunnable exchangeRateUpdateRunnable;
+
+    private static final String TAG = "MainActivity";
 
 
 
@@ -119,20 +124,26 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     @Override
     public void onResume(){
         super.onResume();
-        Spinner spinnerFrom = findViewById(R.id.sp_fromval);
-        Spinner spinnerTo = findViewById(R.id.sp_toval);
 
         SharedPreferences prefs = getPreferences(Context.MODE_PRIVATE);
 
+        //get amount to be converted and result
         EditText txt_amtToConvert = findViewById(R.id.txt_amount);
         TextView txt_convertedAmt = findViewById(R.id.txt_result);
+
         //Retrieve value from preference. Empty string by default
         String amountConverted = prefs.getString("amountConverted","");
         String amountResult = prefs.getString("amountResult","");
 
+        // Retrieve spinner values
+        Spinner spinnerFrom = findViewById(R.id.sp_fromval);
+        Spinner spinnerTo = findViewById(R.id.sp_toval);
         int spinnerSourcePos = prefs.getInt("currencySpinnerSource",0);
         int spinnerTargetPos = prefs.getInt("currencySpinnerTarget",0);
 
+        //Exercise 8.2:
+        //Extend your app so it persists all rates retrieved from the ECB and restores the most current
+        //local data when the app is started next time
         for (String currencyItem : exchangeRateDatabase.getCurrencies()) {
             String currencyRate = prefs.getString(currencyItem, "0.00");
 
@@ -144,7 +155,6 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                 exchangeRateDatabase.setExchangeRate(currencyItem, Double.parseDouble(currencyRate));
             }
         }
-
 
         spinnerFrom.setSelection(spinnerSourcePos);
         spinnerTo.setSelection(spinnerTargetPos);
@@ -172,6 +182,9 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         Spinner spinnerTo = findViewById(R.id.sp_toval);
         int spinnerTargetPos = spinnerTo.getSelectedItemPosition();
 
+        //Exercise 8.2:
+        //Extend your app so it persists all rates retrieved from the ECB and restores the most current
+        //local data when the app is started next time
         for (String currencyItem : exchangeRateDatabase.getCurrencies()) {
             String currencyRate = Double.toString(exchangeRateDatabase.getExchangeRate(currencyItem));
             editor.putString(currencyItem, currencyRate);
@@ -224,6 +237,8 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                 return true;
             case R.id.toolbar_menu_item_refresh:
                 new Thread((Runnable) new ExchangeRateUpdateRunnable(this)).start();
+                //scheduleJobRateUpdater();
+                //this.scheduleJobRateUpdater();
                 return true;
 
             default:
@@ -266,6 +281,33 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     public ExchangeRateDatabase getDatabase(){
         return exchangeRateDatabase;
     }
+
+    public MainActivity getActivity(){
+        return MainActivity.this;
+    }
+
+    public void scheduleJobRateUpdater() {
+        ComponentName componentName = new ComponentName(this, UpdateRatesSchedulerService.class);
+        JobInfo info = new JobInfo.Builder(123, componentName)
+                // .setRequiresCharging(true)
+                .setRequiredNetworkType(JobInfo.NETWORK_TYPE_UNMETERED)
+                .setPersisted(true)
+                .setPeriodic(15 * 60 * 1000)
+                .build();
+        JobScheduler scheduler = (JobScheduler) getSystemService(JOB_SCHEDULER_SERVICE);
+        int resultCode = scheduler.schedule(info);
+        if (resultCode == JobScheduler.RESULT_SUCCESS) {
+            Log.d(TAG, "Job scheduled");
+        } else {
+            Log.d(TAG, "Job scheduling failed");
+        }
+    }
+
+    /*public void cancelJobRateUpdater(View v) {
+        JobScheduler scheduler = (JobScheduler) getSystemService(JOB_SCHEDULER_SERVICE);
+        scheduler.cancel(123);
+        Log.d(TAG, "Job cancelled");
+    } */
 
 }
 

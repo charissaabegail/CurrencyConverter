@@ -1,5 +1,6 @@
 package de.thu.currencyconverter;
 
+import android.app.job.JobParameters;
 import android.util.Log;
 import android.widget.Spinner;
 import android.widget.Toast;
@@ -26,9 +27,9 @@ public class ExchangeRateUpdateRunnable implements Runnable {
     private Notifier notifier;
     private int noOfItemsUpdated;
 
+
     public ExchangeRateUpdateRunnable(MainActivity activity){
         this.mainActivity = activity;
-
         notifier = new Notifier(activity);
         //this.spinnerFrom = spinnerFrom;
         //this.spinnerTo = spinnerTo;
@@ -74,6 +75,7 @@ public class ExchangeRateUpdateRunnable implements Runnable {
                 }
                 eventType = parser.next();
             }
+
 
 
         } catch (MalformedURLException e) {
