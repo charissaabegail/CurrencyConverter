@@ -3,7 +3,9 @@ package de.thu.currencyconverter;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.StrictMode;
 import android.util.Log;
@@ -12,6 +14,7 @@ import android.view.MenuItem;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.BaseAdapter;
+import android.widget.EditText;
 import android.widget.Spinner;
 
 import java.io.InputStream;
@@ -55,45 +58,27 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     ShareActionProvider shareActionProvider = null;
     ExchangeRateUpdateRunnable exchangeRateUpdateRunnable;
 
+
+
+    // Overriden methods
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
         //Quick fix for Network Error
-
         /*StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
         StrictMode.setThreadPolicy(policy); */
-
-
-        //create a runnable object
-      //  exchangeRateUpdateRunnable = new ExchangeRateUpdateRunnable(MainActivity.this,(Spinner) findViewById(R.id.sp_fromval),(Spinner) findViewById(R.id.sp_toval));
-
-        //create a new thread and pass runnable - passing this runnable process to a new thread
-        //Thread t = new Thread(exchangeRateUpdateRunnable);
-
-        //t.start(); //let the thread run in the background
-
-       /* //create a runnable object
-        exchangeRateUpdateRunnable = new ExchangeRateUpdateRunnable(MainActivity.this,(Spinner) findViewById(R.id.sp_fromval),(Spinner) findViewById(R.id.sp_toval));
-
-        //create a new thread and pass runnable - passing this runnable process to a new thread
-        Thread t = new Thread(exchangeRateUpdateRunnable);
-
-        t.start(); //let the thread run in the background */
-
-        //initialize mExchangeRates in ArrayList
-
 
         initList();
 
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
+
         Spinner spinnerFrom = findViewById(R.id.sp_fromval);
         exchangeRateAdapter = new ExchangeRateAdapter(exchangeRateDatabase);
         spinnerFrom.setAdapter(exchangeRateAdapter);
-
 
         Spinner spinnerTo = findViewById(R.id.sp_toval);
         exchangeRateAdapter = new ExchangeRateAdapter(exchangeRateDatabase);
@@ -107,14 +92,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                 clickedFromCurrency = parent.getItemAtPosition(position).toString();
                 cCurrFrom = exchangeRateDatabase.getExchangeRate(clickedFromCurrency);
                 Toast.makeText(MainActivity.this,clickedFromCurrency + " selected. " + cCurrFrom + " exchange rate.", Toast.LENGTH_SHORT).show();
-             //   ExchangeRate fromCurrency =
-             /*   ExchangeRate fromCurrency = (ExchangeRate) parent.getItemAtPosition(position);
-                clickedFromCurrency = fromCurrency.getCurrencyName();
-
-                */
             }
-
-
             @Override
             public void onNothingSelected(AdapterView<?> parent) {
 
@@ -127,12 +105,6 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                 clickedToCurrency = parent.getItemAtPosition(position).toString();
                 cCurrTo = exchangeRateDatabase.getExchangeRate(clickedToCurrency);
                 Toast.makeText(MainActivity.this,clickedToCurrency + " selected. " + cCurrTo + " exchange rate.", Toast.LENGTH_SHORT).show();
-             /*   ExchangeRate toCurrency = (ExchangeRate) parent.getItemAtPosition(position);
-
-                clickedToCurrency = toCurrency.getCurrencyName();
-                cCurrTo = exchangeRateDatabase.getExchangeRate(clickedToCurrency);
-                Toast.makeText(MainActivity.this,clickedToCurrency + " selected. " + cCurrTo + " exchange rate.", Toast.LENGTH_SHORT).show();
-    */
             }
 
             @Override
@@ -143,37 +115,75 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
 
     }
 
-    public void initList(){
-        mExchangeRates = null;
-        mExchangeRates = new ArrayList<>();
-        ExchangeRateDatabase erd = new ExchangeRateDatabase();
-        String keySet;
-        for(int i = 0; i < erd.getCurrencies().length; i++ ){
-            keySet = exchangeRateDatabase.getCurrencies()[i];
-            mExchangeRates.add(new ExchangeRate(keySet,erd.getExchangeRate(keySet), erd.getCapital(keySet)));
+
+    @Override
+    public void onResume(){
+        super.onResume();
+        Spinner spinnerFrom = findViewById(R.id.sp_fromval);
+        Spinner spinnerTo = findViewById(R.id.sp_toval);
+
+        SharedPreferences prefs = getPreferences(Context.MODE_PRIVATE);
+
+        EditText txt_amtToConvert = findViewById(R.id.txt_amount);
+        TextView txt_convertedAmt = findViewById(R.id.txt_result);
+        //Retrieve value from preference. Empty string by default
+        String amountConverted = prefs.getString("amountConverted","");
+        String amountResult = prefs.getString("amountResult","");
+
+        int spinnerSourcePos = prefs.getInt("currencySpinnerSource",0);
+        int spinnerTargetPos = prefs.getInt("currencySpinnerTarget",0);
+
+        for (String currencyItem : exchangeRateDatabase.getCurrencies()) {
+            String currencyRate = prefs.getString(currencyItem, "0.00");
+
+            if ("EUR".equalsIgnoreCase(currencyItem)) {
+                currencyRate = "1.00";
+            }
+
+            if (!("0.00".equals(currencyRate))) {
+                exchangeRateDatabase.setExchangeRate(currencyItem, Double.parseDouble(currencyRate));
+            }
         }
+
+
+        spinnerFrom.setSelection(spinnerSourcePos);
+        spinnerTo.setSelection(spinnerTargetPos);
+        txt_amtToConvert.setText(amountConverted);
+        txt_convertedAmt.setText(amountResult);
     }
 
-    public void initListCurrencies(String[] currencies){
-        mExchangeRates = new ArrayList<>();
-        ExchangeRateDatabase erd = new ExchangeRateDatabase();
-        String keySet;
-        for(int i = 0; i < currencies.length; i++ ){
-            keySet = erd.getCurrencies()[i];
-            mExchangeRates.add(new ExchangeRate(keySet,erd.getExchangeRate(keySet), erd.getCapital(keySet)));
+    @Override
+    protected void onPause() {
+        super.onPause();
+
+        SharedPreferences prefs = getPreferences(Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = prefs.edit();
+
+        EditText txt_amtToConvert = findViewById(R.id.txt_amount);
+        TextView txt_convertedAmt = findViewById(R.id.txt_result);
+
+        //Retrieve value from preference. Empty string by default
+        String amountConverted = txt_amtToConvert.getText().toString();
+        String amountResult = txt_convertedAmt.getText().toString();
+
+        Spinner spinnerFrom = findViewById(R.id.sp_fromval);
+        int spinnerSourcePos = spinnerFrom.getSelectedItemPosition();
+
+        Spinner spinnerTo = findViewById(R.id.sp_toval);
+        int spinnerTargetPos = spinnerTo.getSelectedItemPosition();
+
+        for (String currencyItem : exchangeRateDatabase.getCurrencies()) {
+            String currencyRate = Double.toString(exchangeRateDatabase.getExchangeRate(currencyItem));
+            editor.putString(currencyItem, currencyRate);
         }
-    }
-    public void calculate(View view){
-        TextView amt = (TextView)findViewById(R.id.txt_amount); //amount to exchange
-        TextView res = (TextView)findViewById(R.id.txt_result);
 
-        cAmount = Double.parseDouble(amt.getText().toString());
 
-        cExchangeAmount = cAmount * cCurrTo;
-        res.setText(cExchangeAmount.toString());
+        editor.putString("amountConverted",amountConverted);
+        editor.putString("amountResult",amountResult);
+        editor.putInt("currencySpinnerSource",spinnerSourcePos);
+        editor.putInt("currencySpinnerTarget",spinnerTargetPos);
 
-        setShareText("Currency Conversion: From " + clickedFromCurrency + " to " + clickedToCurrency + " = " + cExchangeAmount.toString() + ". Thank you! - [MORALES]");
-
+        editor.apply();
     }
 
     @Override
@@ -206,35 +216,15 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         shareActionProvider.setShareIntent(shareIntent);
     }
 
-
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         switch(item.getItemId()){
             case R.id.toolbar_menu_item_currency_list:
-
                 startActivity(new Intent(MainActivity.this, CurrencyListActivity.class));
                 return true;
             case R.id.toolbar_menu_item_refresh:
-                //new Thread((Runnable) new ExchangeRateUpdateRunnable(this,(Spinner) findViewById(R.id.sp_fromval),(Spinner) findViewById(R.id.sp_toval))).start();
-
                 new Thread((Runnable) new ExchangeRateUpdateRunnable(this)).start();
                 return true;
-
-                /*exchangeRateUpdateRunnable.updateCurrencies();
-                return true; */
-                //exchangeRateUpdateRunnable.updateCurrencies();
-                // 1. update objects (sorted) from web api
-                   // updateCurrencies();
-
-                // 2. refreshing the DOM spinners
-                  /*  Spinner spinnerFrom = findViewById(R.id.sp_fromval);
-                    exchangeRateAdapter = new ExchangeRateAdapter(this,mExchangeRatesNew);
-                    spinnerFrom.setAdapter(exchangeRateAdapter);
-
-                    Spinner spinnerTo = findViewById(R.id.sp_toval);
-                    exchangeRateAdapter = new ExchangeRateAdapter(this,mExchangeRatesNew);
-                    spinnerTo.setAdapter(exchangeRateAdapter); */
-
 
             default:
                 startActivity(new Intent(MainActivity.this, CurrencyListActivity.class));
@@ -243,74 +233,35 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     }
 
 
+    // User-defined methods
+    public void initList(){
+        mExchangeRates = null;
+        mExchangeRates = new ArrayList<>();
+        ExchangeRateDatabase erd = new ExchangeRateDatabase();
+        String keySet;
+        for(int i = 0; i < erd.getCurrencies().length; i++ ){
+            keySet = exchangeRateDatabase.getCurrencies()[i];
+            mExchangeRates.add(new ExchangeRate(keySet,erd.getExchangeRate(keySet), erd.getCapital(keySet)));
+        }
+    }
+
+    public void calculate(View view){
+        TextView amt = (TextView)findViewById(R.id.txt_amount); //amount to exchange
+        TextView res = (TextView)findViewById(R.id.txt_result);
+
+        cAmount = Double.parseDouble(amt.getText().toString());
+
+        cExchangeAmount = cAmount * cCurrTo;
+        res.setText(cExchangeAmount.toString());
+
+        setShareText("Currency Conversion: From " + clickedFromCurrency + " to " + clickedToCurrency + " = " + cExchangeAmount.toString() + ". Thank you! - [MORALES]");
+
+    }
+
     public ExchangeRateAdapter getAdapter() {
         return exchangeRateAdapter;
     }
 
-
-/*
-    public void updateCurrencies() {
-
-        // 2. Send request to OmdbAPI
-        String queryString = "https://www.ecb.europa.eu/stats/eurofxref/eurofxref-daily.xml"; //android does not allow unencrypted traffic anymore so we change http - https (cant query database)
-
-        try {
-            URL url = new URL(queryString);
-            URLConnection connection = url.openConnection();
-
-            InputStream stream = connection.getInputStream();
-            String encoding = connection.getContentEncoding();
-
-            // 3. Getting and Analyzing XML response
-            XmlPullParser parser = XmlPullParserFactory.newInstance().newPullParser();
-            parser.setInput(stream, encoding);
-
-            // 4. Building a List<Movie>
-            int eventType = parser.getEventType(); //Where are we in the document
-
-
-            mExchangeRatesNew = new ArrayList<>();
-            ExchangeRateDatabase erd = new ExchangeRateDatabase();
-
-            mExchangeRatesNew.add(new ExchangeRate("EUR",erd.getExchangeRate("EUR"), erd.getFlagImage("EUR"), erd.getCapital("EUR")));
-            while(eventType != XmlPullParser.END_DOCUMENT){
-                Toast.makeText(this, "Updating...", Toast.LENGTH_SHORT).show();
-                if(eventType == XmlPullParser.START_TAG) {
-
-                    if("cube".equalsIgnoreCase(parser.getName())){
-                        if(parser.getAttributeValue(null, "currency") != null){
-                            String currencyName = parser.getAttributeValue(null, "currency");
-                            String rateForOneEuro = parser.getAttributeValue(null,"rate");
-
-                            if(erd.isCurrencyExist(currencyName) == true) {
-                                mExchangeRatesNew.add(new ExchangeRate(currencyName,Double.parseDouble(rateForOneEuro), erd.getFlagImage(currencyName), erd.getCapital(currencyName)));
-                            } else {
-                                //Feature to be added later, because web api for currencies does not contain
-                                //flag_image and capital
-                                // ExchangeRate m = new ExchangeRate(currencyName,rateForOneEuro,flagImage,capital );
-                                // exchangeRateList.add(m);
-                            }
-
-                        }
-                    }
-                }
-                eventType = parser.next();
-            }
-
-            //Custom Comparator for Sorting of updated spinner values
-            Collections.sort(mExchangeRatesNew, new CustomComparator());
-
-            Toast.makeText(this, "Updated!", Toast.LENGTH_SHORT).show();
-            initListCurrencies(erd.getCurrencies());
-
-
-        } catch (Exception e) {
-            Log.e("ExchangeRateList", "Can't query database! "+ e.toString());
-            e.printStackTrace();
-        }
-
-    }
-*/
 
     public ExchangeRateDatabase getDatabase(){
         return exchangeRateDatabase;
