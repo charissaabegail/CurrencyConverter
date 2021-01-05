@@ -43,9 +43,10 @@ public class UpdateRatesSchedulerService extends JobService {
             public void run() {
                 try {
                     c++;
-                    Thread.sleep(60*1000);
+                    Thread.sleep(1000);
                     Log.d("Execute:",Integer.toString(c));
                     jobFinished(params, false);
+
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
@@ -67,5 +68,6 @@ public class UpdateRatesSchedulerService extends JobService {
 
 
     }
+
 
 }
