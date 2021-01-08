@@ -246,9 +246,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                 startActivity(new Intent(MainActivity.this, CurrencyListActivity.class));
                 return true;
             case R.id.toolbar_menu_item_refresh:
-               // new Thread((Runnable) new ExchangeRateUpdateRunnable(this)).start();
                 scheduleJobRateUpdater();
-                //this.scheduleJobRateUpdater();
                 return true;
 
             default:
@@ -292,8 +290,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         return exchangeRateDatabase;
     }
 
-
-
+    //JobScheduler for Rates Update
     public void scheduleJobRateUpdater() {
         ComponentName componentName = new ComponentName(this, UpdateRatesSchedulerService.class);
 
@@ -314,11 +311,6 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         }
     }
 
-    /*public void cancelJobRateUpdater(View v) {
-        JobScheduler scheduler = (JobScheduler) getSystemService(JOB_SCHEDULER_SERVICE);
-        scheduler.cancel(123);
-        Log.d(TAG, "Job cancelled");
-    } */
 
 }
 

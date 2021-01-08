@@ -96,14 +96,6 @@ public class ExchangeRateDatabase {
     }
 
     /**
-     * Gets capital given the flag
-     */
-  /*  public String getCapital(String currency) {
-        return CURRENCIES_MAP_CAPITAL.get(currency);
-    } */
-
-
-    /**
      * Converts a value from a currency to another one
      * @return converted value
      */

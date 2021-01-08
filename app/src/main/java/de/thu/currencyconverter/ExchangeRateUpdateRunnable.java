@@ -31,8 +31,7 @@ public class ExchangeRateUpdateRunnable implements Runnable {
     public ExchangeRateUpdateRunnable(MainActivity activity){
         this.mainActivity = activity;
         notifier = new Notifier(activity);
-        //this.spinnerFrom = spinnerFrom;
-        //this.spinnerTo = spinnerTo;
+
     }
 
     @Override

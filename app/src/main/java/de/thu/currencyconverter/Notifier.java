@@ -47,21 +47,8 @@ public class Notifier {
 
         notificationBuilder = new NotificationCompat.Builder(context,C_CHANNEL_ID)
                 .setSmallIcon(R.drawable.ic_update)
-               // .setStyle(new NotificationCompat.DecoratedCustomViewStyle())
                 .setCustomContentView(contentView)
-
-              //  .setContentTitle("CurrencyConverter is up-to-date!")
                 .setAutoCancel(false); //if you click on it it gets removed
-
-      //  Notification notification = notificationBuilder.build();
-        /*
-        *  Notification notification = mBuilder.build();
-            notification.flags |= Notification.FLAG_AUTO_CANCEL;
-            notification.defaults |= Notification.DEFAULT_SOUND;
-            notification.defaults |= Notification.DEFAULT_VIBRATE;
-            notificationManager.notify(1, notification);
-        * */
-
     }
 
 
