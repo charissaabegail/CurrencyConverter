@@ -40,6 +40,8 @@ import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserFactory;
 
 public class MainActivity extends AppCompatActivity implements AdapterView.OnItemSelectedListener {
+
+    private final int UPDATE_INTERVAL_HRS = 24 * 60 * 60 * 1000; //24 hours in milliseconds
     private String cCurrencyFr = "";
     private String cCurrencyTo = "";
     private Double cExchangeRate = 0.0;
@@ -299,7 +301,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                 // .setRequiresCharging(true)
                 .setRequiredNetworkType(JobInfo.NETWORK_TYPE_UNMETERED)
                 .setPersisted(true)
-                .setPeriodic(15 * 60 * 1000)
+                .setPeriodic(UPDATE_INTERVAL_HRS)
                 .build();
 
 
