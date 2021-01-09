@@ -24,6 +24,7 @@ import android.widget.Spinner;
 import java.io.InputStream;
 import java.net.URL;
 import java.net.URLConnection;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -51,8 +52,11 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     private Double cCurrFrom = 0.0;
     private Double cCurrTo = 0.0;
 
+
     private String clickedFromCurrency = "";
     private String clickedToCurrency = "";
+
+    private static DecimalFormat df2 = new DecimalFormat("#.##");
 
 
     //For custom spinner adapter
@@ -102,6 +106,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 clickedFromCurrency = parent.getItemAtPosition(position).toString();
                 cCurrFrom = exchangeRateDatabase.getExchangeRate(clickedFromCurrency);
+                Log.i("New spinner from:",Double.toString(cCurrFrom));
                 Toast.makeText(MainActivity.this,clickedFromCurrency + " selected. " + cCurrFrom + " exchange rate.", Toast.LENGTH_SHORT).show();
             }
             @Override
@@ -273,11 +278,14 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         TextView res = (TextView)findViewById(R.id.txt_result);
 
         cAmount = Double.parseDouble(amt.getText().toString());
+        cExchangeRate =  cCurrTo / cCurrFrom;
+        cExchangeAmount = cAmount * cExchangeRate;
 
-        cExchangeAmount = cAmount * cCurrTo;
-        res.setText(cExchangeAmount.toString());
+        String sValue = (String) String.format("%.2f", cExchangeAmount);
+        Double newValue = Double.parseDouble(sValue);
+        res.setText(newValue.toString());
 
-        setShareText("Currency Conversion: From " + clickedFromCurrency + " to " + clickedToCurrency + " = " + cExchangeAmount.toString() + ". Thank you! - [MORALES]");
+        setShareText("Currency Conversion: From " + clickedFromCurrency + " to " + clickedToCurrency + " = " + cExchangeAmount.toString() + ". Thank you!");
 
     }
 
